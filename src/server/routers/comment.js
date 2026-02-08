@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const db = require('../../database');
-const { checkArgs } = require('../middleware');
+const { checkArgs, validateComment } = require('../middleware');
 
 
-router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, validateComment, async (request, response) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
 
@@ -23,7 +23,7 @@ router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, async (reques
         };
 
         if (!request.session.user) {
-            response.status(401)
+            response.status(401);
             response.redirect(`${request.baseUrl}/login?redirect=/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
         };
@@ -34,11 +34,12 @@ router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, async (reques
             return;
         };
 
-        const { content } = request.body;
-        if (!content) {
+        if (request.validationErrors) {
             response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
-        };
+        }
+
+        const { content } = request.body;
 
         await db.execute('INSERT INTO comments (content, user_id, post_id) VALUES (?, ?, ?)', [content, request.session.user.id, post[0].id]);
 
@@ -76,7 +77,7 @@ router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArg
         };
 
         if (!request.session.user) {
-            response.status(401)
+            response.status(401);
             response.redirect(`${request.baseUrl}/login?redirect=/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
         };
@@ -96,6 +97,7 @@ router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArg
                     redirect: `${request.baseUrl}/topics/${topic[0].name}`
                 }
             });
+            return;
         };
 
         response.render('new-reply', {
@@ -114,7 +116,7 @@ router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArg
     }
 });
 
-router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, validateComment, async (request, response) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
     const commentId = request.params.commentId;
@@ -133,7 +135,7 @@ router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkAr
         };
 
         if (!request.session.user) {
-            response.status(401)
+            response.status(401);
             response.redirect(`${request.baseUrl}/login?redirect=/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
         };
@@ -144,11 +146,12 @@ router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkAr
             return;
         };
 
-        const { content } = request.body;
-        if (!content) {
+        if (request.validationErrors) {
             response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
-        };
+        }
+
+        const { content } = request.body;
 
         await db.execute('INSERT INTO comments (content, user_id, post_id, parent_id) VALUES (?, ?, ?, ?)', [content, request.session.user.id, post[0].id, commentId]);
 
@@ -180,7 +183,7 @@ router.post('/topics/:topicArg/posts/:postId/comments/delete', checkArgs, async 
         };
 
         if (!request.session.user) {
-            response.status(401)
+            response.status(401);
             response.redirect(`${request.baseUrl}/login?redirect=/topics/${topic[0].name}/posts/${post[0].id}`);
             return;
         };

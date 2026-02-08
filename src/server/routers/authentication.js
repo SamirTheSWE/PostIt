@@ -3,6 +3,13 @@ const express = require('express');
 const router = express.Router();
 
 const db = require('../../database');
+const { authLimiter } = require('../app');
+const { validateRegistration } = require('../middleware');
+
+const isValidRedirect = (redirect) => {
+    if (!redirect) return true;
+    return redirect.startsWith('/') && !redirect.startsWith('//');
+};
 
 
 const hashPassword = async (password) => {
@@ -16,6 +23,11 @@ router.get('/register', (request, response) => {
     let route = request.baseUrl + '/register';
     let message = null;
     const redirect = request.query.redirect || null;
+
+    if (redirect && !isValidRedirect(redirect)) {
+        return response.status(400).send('Invalid redirect parameter');
+    }
+
     if (redirect) {
         route += `?redirect=${redirect}`;
         message = {
@@ -38,12 +50,30 @@ router.get('/register', (request, response) => {
     });
 });
 
-router.post('/register', async (request, response) => {
+router.post('/register', authLimiter, validateRegistration, async (request, response) => {
     const redirect = request.query.redirect || null;
+
+    if (redirect && !isValidRedirect(redirect)) {
+        return response.status(400).send('Invalid redirect parameter');
+    }
 
     if (request.session.user) {
         return response.redirect(request.baseUrl);
     };
+
+    if (request.validationErrors) {
+        return response.render('authentication', {
+            title: 'Register',
+            name: global.name,
+            session: null,
+            type: 'Register',
+            route: request.baseUrl + '/register',
+            message: {
+                type: 'danger',
+                text: request.validationErrors.map(e => e.msg).join('. ')
+            }
+        });
+    }
 
     const { username, password } = request.body;
     const hashedPassword = await hashPassword(password);
@@ -67,22 +97,25 @@ router.post('/register', async (request, response) => {
         }
 
         await db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
-        const user = await db.query('SELECT * FROM users WHERE username = ?', [username]);
+        const [userResult] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+        const user = userResult[0];
 
         request.session.user = {
             id: user.id,
             username: user.username
         };
+
+        const redirectUrl = redirect || request.baseUrl;
         response.render('authentication', {
             title: 'Register',
             name: global.name,
             session: request.session.user,
             type: 'Register',
-            route: redirect || request.baseUrl,
+            route: redirectUrl,
             message: {
                 type: 'success',
-                text: 'Account Created Successfully! Redirecting to Home Page . . .',
-                redirect: request.baseUrl
+                text: 'Account Created Successfully! Redirecting . . .',
+                redirect: redirectUrl
             }
         });
 
@@ -98,6 +131,11 @@ router.get('/login', (request, response) => {
     let route = request.baseUrl + '/login';
     let message = null;
     const redirect = request.query.redirect || null;
+
+    if (redirect && !isValidRedirect(redirect)) {
+        return response.status(400).send('Invalid redirect parameter');
+    }
+
     if (redirect) {
         route += `?redirect=${redirect}`;
         message = {
@@ -120,8 +158,12 @@ router.get('/login', (request, response) => {
     });
 });
 
-router.post('/login', async (request, response) => {
+router.post('/login', authLimiter, async (request, response) => {
     const redirect = request.query.redirect || null;
+
+    if (redirect && !isValidRedirect(redirect)) {
+        return response.status(400).send('Invalid redirect parameter');
+    }
 
     if (request.session.user) {
         return response.redirect(request.baseUrl);
@@ -141,28 +183,29 @@ router.post('/login', async (request, response) => {
                 route: request.baseUrl + '/login',
                 message: {
                     type: 'danger',
-                    text: 'Invalid Username'
+                    text: 'Invalid credentials'
                 }
             });
         }
         const user = data[0];
-        
+
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             request.session.user = {
                 id: user.id,
                 username: user.username
             };
+            const redirectUrl = redirect || request.baseUrl;
             return response.render('authentication', {
                 title: 'Login',
                 name: global.name,
                 session: request.session.user,
                 type: 'Login',
-                route: request.baseUrl + (redirect || ''),
+                route: redirectUrl,
                 message: {
                     type: 'success',
                     text: 'Login Successful! Redirecting . . .',
-                    redirect: request.baseUrl + (redirect || '')
+                    redirect: redirectUrl
                 }
             });
         } else {
@@ -174,7 +217,7 @@ router.post('/login', async (request, response) => {
                 route: request.baseUrl + '/login',
                 message: {
                     type: 'danger',
-                    text: 'Invalid Password'
+                    text: 'Invalid credentials'
                 }
             });
         }

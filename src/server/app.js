@@ -1,6 +1,10 @@
+require('dotenv').config();
 const ejs = require('ejs');
 const express = require('express');
 const session = require('express-session');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const csrf = require('csurf');
 
 const routes = require('./routes');
 
@@ -8,10 +12,42 @@ const routes = require('./routes');
 const app = express();
 const baseURl = '/postit';
 
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+            scriptSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"]
+        }
+    }
+}));
+
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again later.'
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Too many login/register attempts, please try again later.',
+    skipSuccessfulRequests: true
+});
+
+app.use(baseURl, generalLimiter);
+
 app.use(session({
-    secret: 'PostIt',
-    resave: true,
-    saveUninitialized: true,
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 1000 * 60 * 60 * 24
+    }
 }));
 
 app.set('view engine', 'ejs');
@@ -27,6 +63,19 @@ app.use(`${baseURl}/js`, express.static('node_modules/jquery-ui/dist'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const csrfProtection = csrf({ cookie: false });
+
+app.use((req, res, next) => {
+    if (req.method === 'GET' || req.path.startsWith('/css') || req.path.startsWith('/js')) {
+        return next();
+    }
+    csrfProtection(req, res, next);
+});
+
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken ? req.csrfToken() : null;
+    next();
+});
 
 app.use((req, res, next) => {
     res.locals.baseUrl = baseURl;
@@ -40,3 +89,4 @@ routes.forEach((route) => {
 
 
 module.exports = app;
+module.exports.authLimiter = authLimiter;

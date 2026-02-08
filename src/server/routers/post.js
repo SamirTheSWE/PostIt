@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const db = require('../../database');
-const { checkArgs } = require('../middleware');
+const { checkArgs, validatePost } = require('../middleware');
 
 
 router.get('/topics/:topicArg/posts/new', checkArgs, async (request, response) => {
@@ -46,7 +46,7 @@ router.get('/topics/:topicArg/posts/new', checkArgs, async (request, response) =
     }
 });
 
-router.post('/topics/:topicArg/posts/new', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/posts/new', checkArgs, validatePost, async (request, response) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -68,11 +68,20 @@ router.post('/topics/:topicArg/posts/new', checkArgs, async (request, response) 
             return;
         };
 
+        if (request.validationErrors) {
+            return response.render('new-post', {
+                title: 'New Post',
+                name: global.name,
+                session: request.session.user,
+                topic: topic[0],
+                message: {
+                    type: 'danger',
+                    text: request.validationErrors.map(e => e.msg).join('. ')
+                }
+            });
+        }
+
         const { title, content } = request.body;
-        if (!title || !content) {
-            response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/new`);
-            return;
-        };
 
         const [post] = await db.execute('INSERT INTO posts (title, content, user_id, topic_id) VALUES (?, ?, ?, ?)', [title, content, request.session.user.id, topic[0].id]);
 

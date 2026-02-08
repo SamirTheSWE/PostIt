@@ -15,7 +15,7 @@
                     <% if (typeof message.redirect !=='undefined') { %>
                         <script>
                             setTimeout(function () {
-                                window.location.href = '<%= message.redirect %>';
+                                window.location.href = <%= JSON.stringify(message.redirect) %>;
                             }, 3000);
                         </script>
                         <% } %>
@@ -25,6 +25,9 @@
                             <label for="content" class="form-label">Your Reply</label>
                             <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
                         </div>
+                        <% if (locals.csrfToken) { %>
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <% } %>
                             <button type="submit" class="btn btn-primary">Submit Reply</button>
                     </form>
             </div>

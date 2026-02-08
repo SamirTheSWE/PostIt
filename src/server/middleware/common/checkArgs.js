@@ -4,18 +4,21 @@ const db = require('../../../database');
 const checkArgs = async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
-    let key = 'name';
-    let redirect = false;
-    if (!isNaN(topicArg)) {
-        key = 'id';
-        redirect = true;
-    };
+    const allowedColumns = ['id', 'name'];
+    const key = Number(topicArg) ? 'id' : 'name';
+
+    if (!allowedColumns.includes(key)) {
+        response.sendStatus(400);
+        return;
+    }
+
+    const redirect = key === 'id';
 
     try {
         const sql = 'SELECT * FROM topics WHERE ?? = ?';
         const formattedSql = db.format(sql, [key, topicArg]);
         const [topic] = await db.execute(formattedSql);
-        
+
         if (!topic || topic.length === 0) {
             response.sendStatus(404);
             return;
