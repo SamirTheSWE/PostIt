@@ -10,6 +10,7 @@ const { generalLimiter } = require('./middleware/limiters');
 
 
 const app = express();
+app.set('trust proxy', 1);
 const baseURl = '/postit';
 
 app.use(helmet({
