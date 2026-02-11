@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const db = require('../../database');
-const { authLimiter } = require('../app');
+const { authLimiter } = require('../middleware/limiters');
 const { validateRegistration } = require('../middleware');
 
 const isValidRedirect = (redirect) => {

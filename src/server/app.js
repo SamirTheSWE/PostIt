@@ -3,10 +3,10 @@ const ejs = require('ejs');
 const express = require('express');
 const session = require('express-session');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const csrf = require('csurf');
 
 const routes = require('./routes');
+const { generalLimiter } = require('./middleware/limiters');
 
 
 const app = express();
@@ -22,19 +22,6 @@ app.use(helmet({
         }
     }
 }));
-
-const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: 'Too many requests from this IP, please try again later.'
-});
-
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 5,
-    message: 'Too many login/register attempts, please try again later.',
-    skipSuccessfulRequests: true
-});
 
 app.use(baseURl, generalLimiter);
 
@@ -89,4 +76,3 @@ routes.forEach((route) => {
 
 
 module.exports = app;
-module.exports.authLimiter = authLimiter;
