@@ -53,12 +53,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const csrfProtection = csrf({ cookie: false });
 
-app.use((req, res, next) => {
-    if (req.method === 'GET' || req.path.startsWith('/css') || req.path.startsWith('/js')) {
-        return next();
-    }
-    csrfProtection(req, res, next);
-});
+app.use(csrfProtection);
 
 app.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken ? req.csrfToken() : null;
@@ -75,5 +70,31 @@ routes.forEach((route) => {
     app.use(baseURl, route);
 });
 
+app.use((req, res) => {
+    res.status(404).render('error', {
+        name: global.name,
+        session: req.session.user || null,
+        status: 404,
+        message: 'Page not found.'
+    });
+});
+
+app.use((err, req, res, next) => {
+    if (err.code === 'EBADCSRFTOKEN') {
+        return res.status(403).render('error', {
+            name: global.name,
+            session: req.session.user || null,
+            status: 403,
+            message: 'Invalid or expired form submission. Please go back and try again.'
+        });
+    }
+    console.error(err);
+    res.status(err.status || 500).render('error', {
+        name: global.name,
+        session: req.session.user || null,
+        status: err.status || 500,
+        message: 'Something went wrong. Please try again later.'
+    });
+});
 
 module.exports = app;

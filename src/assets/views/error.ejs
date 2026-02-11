@@ -1,0 +1,17 @@
+<%- include('partials/header', { title: status + ' Error', name }) %>
+
+    <body class="d-flex flex-column min-vh-100">
+        <%- include('partials/navigation', { name, session }) %>
+
+        <div class="container mt-4">
+            <h2><%= status %> Error</h2>
+            <div class="alert alert-danger" role="alert">
+                <%= message %>
+            </div>
+            <a href="<%= locals.baseUrl || '/' %>" class="btn btn-primary">Go Home</a>
+        </div>
+
+        <%- include('partials/footer', { name }) %>
+    </body>
+
+</html>
