@@ -73,6 +73,7 @@ routes.forEach((route) => {
 app.use((req, res) => {
     res.status(404).render('error', {
         name: global.name,
+        baseUrl: baseURl,
         session: req.session.user || null,
         status: 404,
         message: 'Page not found.'
@@ -83,6 +84,7 @@ app.use((err, req, res, next) => {
     if (err.code === 'EBADCSRFTOKEN') {
         return res.status(403).render('error', {
             name: global.name,
+            baseUrl: baseURl,
             session: req.session.user || null,
             status: 403,
             message: 'Invalid or expired form submission. Please go back and try again.'
@@ -91,6 +93,7 @@ app.use((err, req, res, next) => {
     console.error(err);
     res.status(err.status || 500).render('error', {
         name: global.name,
+        baseUrl: baseURl,
         session: req.session.user || null,
         status: err.status || 500,
         message: 'Something went wrong. Please try again later.'
