@@ -4,7 +4,7 @@ const router = express.Router();
 const db = require('../../database');
 
 
-router.get('/search', async (request, response) => {
+router.get('/search', async (request, response, next) => {
     const query = request.query.q;
 
     try {
@@ -48,9 +48,7 @@ router.get('/search', async (request, response) => {
         });
 
     } catch (error) {
-        console.error('Error at Route -> [GET] /search');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

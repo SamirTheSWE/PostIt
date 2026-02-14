@@ -19,6 +19,7 @@
                             <% if (session && post.user_id === session.id) { %>
                                 <form class="d-inline"
                                     action="<%= baseUrl %>/topics/<%= topic.name %>/posts/<%= post.id %>/delete" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                         <i class="fas fa-trash fa-xs"></i>
                                         <span class="small">Delete Post</span>
@@ -50,6 +51,7 @@
                                                     action="<%= baseUrl %>/topics/<%= topic.name %>/posts/<%= post.id %>/comments/delete"
                                                     method="POST">
                                                     <input type="hidden" name="commentId" value="<%= comment.id %>">
+                                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger">
                                                         <i class="fas fa-trash fa-xs"></i>
                                                         <span class="small">Delete</span>
@@ -87,6 +89,7 @@
                                 <label for="comment" class="form-label">Comment</label>
                                 <textarea class="form-control" id="content" name="content" rows="3" required></textarea>
                             </div>
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                             <button type="submit" class="btn btn-primary">Submit Comment</button>
                         </form>
                     </div>

@@ -5,7 +5,7 @@ const db = require('../../database');
 const { checkArgs, validateComment } = require('../middleware');
 
 
-router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, validateComment, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, validateComment, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
 
@@ -46,13 +46,11 @@ router.post('/topics/:topicArg/posts/:postId/comments', checkArgs, validateComme
         response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post[0].id}`);
     }
     catch (error) {
-        console.error('Error at Route -> [POST] /topics/:topicArg/posts/:postId/comments/new');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
-router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, async (request, response) => {
+router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
     const commentId = request.params.commentId;
@@ -110,13 +108,11 @@ router.get('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArg
         });
     }
     catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg/posts/:postId/comments/:commentId/reply');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
-router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, validateComment, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkArgs, validateComment, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
     const commentId = request.params.commentId;
@@ -158,14 +154,12 @@ router.post('/topics/:topicArg/posts/:postId/comments/:commentId/reply', checkAr
         response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post[0].id}`);
     }
     catch (error) {
-        console.error('Error at Route -> [POST] /topics/:topicArg/posts/:postId/comments/:commentId/reply');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
 
-router.post('/topics/:topicArg/posts/:postId/comments/delete', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/comments/delete', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
 
@@ -205,9 +199,7 @@ router.post('/topics/:topicArg/posts/:postId/comments/delete', checkArgs, async 
         response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post[0].id}`);
     }
     catch (error) {
-        console.error('Error at Route -> [DELETE] /topics/:topicArg/posts/:postId/comments');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

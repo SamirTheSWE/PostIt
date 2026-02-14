@@ -49,15 +49,18 @@
                         <% if (session) { %>
                             <% if (typeof joined !== 'undefined' && joined) { %>
                                 <form action="<%= baseUrl %>/topics/<%= topic.name %>/leave" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit" class="btn btn-danger w-100">Leave this Topic</button>
                                 </form>
                             <% } else { %>
                                 <form action="<%= baseUrl %>/topics/<%= topic.name %>/join" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit" class="btn btn-success w-100">Join this Topic</button>
                                 </form>
                                 <% } %>
                         <% } else { %>
                             <form action="<%= baseUrl %>/topics/<%= topic.name %>/join" method="POST">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <button type="submit" class="btn btn-success w-100">Join this
                                     Topic</button>
                             </form>

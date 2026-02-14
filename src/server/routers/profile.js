@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../../database');
 
 
-router.get('/users/:username', async (request, response) => {
+router.get('/users/:username', async (request, response, next) => {
     const username = request.params.username;
 
     try {
@@ -28,9 +28,7 @@ router.get('/users/:username', async (request, response) => {
             userComments
         });
     } catch (error) {
-        console.error('Error at Route -> GET /users/:username');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

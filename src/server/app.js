@@ -56,7 +56,7 @@ const csrfProtection = csrf({ cookie: false });
 app.use(csrfProtection);
 
 app.use((req, res, next) => {
-    res.locals.csrfToken = req.csrfToken ? req.csrfToken() : null;
+    res.locals.csrfToken = req.csrfToken();
     next();
 });
 

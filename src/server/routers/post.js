@@ -5,7 +5,7 @@ const db = require('../../database');
 const { checkArgs, validatePost } = require('../middleware');
 
 
-router.get('/topics/:topicArg/posts/new', checkArgs, async (request, response) => {
+router.get('/topics/:topicArg/posts/new', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -40,13 +40,11 @@ router.get('/topics/:topicArg/posts/new', checkArgs, async (request, response) =
         });
 
     } catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg/posts/new');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
-router.post('/topics/:topicArg/posts/new', checkArgs, validatePost, async (request, response) => {
+router.post('/topics/:topicArg/posts/new', checkArgs, validatePost, async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -88,14 +86,12 @@ router.post('/topics/:topicArg/posts/new', checkArgs, validatePost, async (reque
         response.redirect(`${request.baseUrl}/topics/${topic[0].name}/posts/${post.insertId}`);
     }
     catch (error) {
-        console.error('Error at Route -> [POST] /topics/:topicArg/posts/new');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
 
-router.post('/topics/:topicArg/posts/:postId/delete', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/posts/:postId/delete', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
 
@@ -123,14 +119,12 @@ router.post('/topics/:topicArg/posts/:postId/delete', checkArgs, async (request,
         response.redirect(`${request.baseUrl}/topics/${topic[0].name}`);
     }
     catch (error) {
-        console.error('Error at Route -> [DELETE] /topics/:topicArg/posts/:postId/delete');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
 
-router.get('/topics/:topicArg/posts/:postId', checkArgs, async (request, response) => {
+router.get('/topics/:topicArg/posts/:postId', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
     const postId = request.params.postId;
 
@@ -162,9 +156,7 @@ router.get('/topics/:topicArg/posts/:postId', checkArgs, async (request, respons
         });
 
     } catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg/posts/:postId');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

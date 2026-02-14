@@ -13,13 +13,6 @@
                         <%= message.text %>
                     </div>
 
-                    <% if (typeof message.redirect !=='undefined') { %>
-                        <script>
-                            setTimeout(function () {
-                                window.location.href = <%= JSON.stringify(message.redirect) %>;
-                            }, 3000);
-                        </script>
-                    <% } %>
                 <% } %>
 
                 <% if (typeof route !=='undefined' && route !==null) { %>
@@ -34,9 +27,7 @@
                             <input type="password" class="form-control" id="password" name="password"
                                 required>
                         </div>
-                        <% if (locals.csrfToken) { %>
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <% } %>
                         <button type="submit" class="btn btn-primary">
                             <%= type %>
                         </button>

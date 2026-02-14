@@ -50,7 +50,7 @@ router.get('/register', (request, response) => {
     });
 });
 
-router.post('/register', authLimiter, validateRegistration, async (request, response) => {
+router.post('/register', authLimiter, validateRegistration, async (request, response, next) => {
     const redirect = request.query.redirect || null;
 
     if (redirect && !isValidRedirect(redirect)) {
@@ -106,23 +106,13 @@ router.post('/register', authLimiter, validateRegistration, async (request, resp
         };
 
         const redirectUrl = redirect || request.baseUrl;
-        response.render('authentication', {
-            title: 'Register',
-            name: global.name,
-            session: request.session.user,
-            type: 'Register',
-            route: redirectUrl,
-            message: {
-                type: 'success',
-                text: 'Account Created Successfully! Redirecting . . .',
-                redirect: redirectUrl
-            }
+        request.session.save((err) => {
+            if (err) return next(err);
+            response.redirect(redirectUrl);
         });
 
     } catch (error) {
-        console.error('Error at Route -> [POST] /register');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
@@ -158,7 +148,7 @@ router.get('/login', (request, response) => {
     });
 });
 
-router.post('/login', authLimiter, async (request, response) => {
+router.post('/login', authLimiter, async (request, response, next) => {
     const redirect = request.query.redirect || null;
 
     if (redirect && !isValidRedirect(redirect)) {
@@ -196,17 +186,9 @@ router.post('/login', authLimiter, async (request, response) => {
                 username: user.username
             };
             const redirectUrl = redirect || request.baseUrl;
-            return response.render('authentication', {
-                title: 'Login',
-                name: global.name,
-                session: request.session.user,
-                type: 'Login',
-                route: redirectUrl,
-                message: {
-                    type: 'success',
-                    text: 'Login Successful! Redirecting . . .',
-                    redirect: redirectUrl
-                }
+            return request.session.save((err) => {
+                if (err) return next(err);
+                response.redirect(redirectUrl);
             });
         } else {
             return response.render('authentication', {
@@ -222,9 +204,7 @@ router.post('/login', authLimiter, async (request, response) => {
             });
         }
     } catch (error) {
-        console.error('Error at Route -> [POST] /login');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

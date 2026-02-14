@@ -4,7 +4,7 @@ const router = express.Router();
 const db = require('../../database');
 
 
-router.get('/', async (request, response) => {
+router.get('/', async (request, response, next) => {
     try {
         const [topics] = await db.execute(
             'SELECT topics.*, COUNT(posts.id) AS post_count FROM topics LEFT JOIN posts ON topics.id = posts.topic_id GROUP BY topics.id ORDER BY post_count DESC LIMIT 10'
@@ -17,9 +17,7 @@ router.get('/', async (request, response) => {
         response.render('home', { title: 'Home', name: global.name, session: request.session.user, topics, posts, users });
 
     } catch (error) {
-        console.error('Error at Route -> [GET] /');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 

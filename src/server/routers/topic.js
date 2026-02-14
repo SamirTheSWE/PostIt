@@ -5,7 +5,7 @@ const db = require('../../database');
 const { checkArgs } = require('../middleware');
 
 
-router.get('/topics/:topicArg', checkArgs, async (request, response) => {
+router.get('/topics/:topicArg', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -43,14 +43,12 @@ router.get('/topics/:topicArg', checkArgs, async (request, response) => {
         });
 
     } catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
 
-router.post('/topics/:topicArg/join', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/join', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -68,7 +66,7 @@ router.post('/topics/:topicArg/join', checkArgs, async (request, response) => {
 
         const [data] = await db.execute('SELECT * FROM user_topic WHERE user_id = ? AND topic_id = ?', [request.session.user.id, topic[0].id]);
         if (data && data.length > 0) {
-            response.redirect(`/topics/${topic[0].name}`);
+            response.redirect(`${request.baseUrl}/topics/${topic[0].name}`);
             return;
         } else {
             await db.execute('INSERT INTO user_topic (user_id, topic_id) VALUES (?, ?)', [request.session.user.id, topic[0].id]);
@@ -78,14 +76,12 @@ router.post('/topics/:topicArg/join', checkArgs, async (request, response) => {
 
     }
     catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg/join');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
 
-router.post('/topics/:topicArg/leave', checkArgs, async (request, response) => {
+router.post('/topics/:topicArg/leave', checkArgs, async (request, response, next) => {
     const topicArg = request.params.topicArg;
 
     try {
@@ -107,9 +103,7 @@ router.post('/topics/:topicArg/leave', checkArgs, async (request, response) => {
 
     }
     catch (error) {
-        console.error('Error at Route -> [GET] /topics/:topicArg/join');
-        console.error(error);
-        response.sendStatus(500);
+        next(error);
     }
 });
 
